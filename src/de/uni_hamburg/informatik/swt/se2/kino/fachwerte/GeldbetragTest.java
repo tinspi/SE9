@@ -12,22 +12,38 @@ public class GeldbetragTest {
 		Geldbetrag betrag = new Geldbetrag(100);
 		assertEquals(1, betrag.getEuro());
 		assertEquals(0, betrag.getCent());
-		assertEquals("1,00", betrag.toString());
 		
 		betrag = new Geldbetrag(0);
 		assertEquals(0, betrag.getEuro());
 		assertEquals(0, betrag.getCent());
-		assertEquals("0,00", betrag.toString());
 		
 		betrag = new Geldbetrag(99);
 		assertEquals(0, betrag.getEuro());
 		assertEquals(99, betrag.getCent());
-		assertEquals("0,99", betrag.toString());
 		
 		betrag = new Geldbetrag(101);
 		assertEquals(1, betrag.getEuro());
 		assertEquals(01, betrag.getCent());
-		assertEquals("1,01", betrag.toString());
+		
+		betrag = new Geldbetrag("1,5");
+        assertEquals(1, betrag.getEuro());
+        assertEquals(50, betrag.getCent());
+        
+        betrag = new Geldbetrag("0");
+        assertEquals(0, betrag.getEuro());
+        assertEquals(0, betrag.getCent());
+        
+        betrag = new Geldbetrag("0,99");
+        assertEquals(0, betrag.getEuro());
+        assertEquals(99, betrag.getCent());
+        
+        betrag = new Geldbetrag("1,01");
+        assertEquals(1, betrag.getEuro());
+        assertEquals(01, betrag.getCent());
+        
+        betrag = new Geldbetrag("1,");
+        assertEquals(1, betrag.getEuro());
+        assertEquals(00, betrag.getCent());
 	}
 	
 	@Test
@@ -41,7 +57,6 @@ public class GeldbetragTest {
 		
 		Geldbetrag betrag3 = new Geldbetrag(101);
 		assertFalse(betrag3.equals(betrag1));
-		assertFalse(betrag3.hashCode() == betrag1.hashCode());
 	}
 	
 	@Test
@@ -51,16 +66,19 @@ public class GeldbetragTest {
 		Geldbetrag betrag2 = new Geldbetrag(138);
 		assertEquals(6, Geldbetrag.add(betrag1, betrag2).getEuro());
 		assertEquals(38, Geldbetrag.add(betrag1, betrag2).getCent());
-		
 	}
 
 	@Test
-	public void testSub()
+	public void testDiff()
 	{
 		Geldbetrag betrag1 = new Geldbetrag(500);
 		Geldbetrag betrag2 = new Geldbetrag(138);
 		assertEquals(3, Geldbetrag.diff(betrag1, betrag2).getEuro());
 		assertEquals(62, Geldbetrag.diff(betrag1, betrag2).getCent());
+		assertEquals(362, Geldbetrag.diff(betrag1, betrag2).getEurocent());
+		assertEquals(3, Geldbetrag.diff(betrag2, betrag1).getEuro());
+        assertEquals(62, Geldbetrag.diff(betrag2, betrag1).getCent());
+        assertEquals(362, Geldbetrag.diff(betrag2, betrag1).getEurocent());
 		
 	}
 
@@ -71,18 +89,10 @@ public class GeldbetragTest {
 		int faktor = 2;
 		assertEquals(1, Geldbetrag.multiply(betrag1, faktor).getEuro());
 		assertEquals(0, Geldbetrag.multiply(betrag1, faktor).getCent());
-		assertEquals("1,00", Geldbetrag.multiply(betrag1, faktor).toString());
-	}
-	
-
-	@Test
-	public void testParser()
-	{
-		String betrag = "40,55";
 		
-		assertEquals(40, new Geldbetrag(betrag).getEuro());
-		assertEquals(55, new Geldbetrag(betrag).getCent());
-		assertEquals("40,55", new Geldbetrag(betrag).toString());
+        int faktor2 = 0;
+        assertEquals(0, Geldbetrag.multiply(betrag1, faktor2).getEuro());
+        assertEquals(0, Geldbetrag.multiply(betrag1, faktor2).getCent());
 	}
 	
 	@Test

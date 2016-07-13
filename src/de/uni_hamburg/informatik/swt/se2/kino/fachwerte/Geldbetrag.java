@@ -10,13 +10,15 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 {
 
 	private final int _eurocent;
+	private final static String _betragMitNachkommastelle = "\\d{1,7},\\d{0,2}";
+	private final static String _betrag = "\\d{1,7}";
 	
 	
 	/**
 	 * Initialisiert ein neues Exemplar eines Geldbetrags mittels Int 
 	 * @param eurocent Der Betrag in cent. 
 	 * 
-	 * @require cent != oder < 0
+	 * @require inputZahl >= 0
 	 */
 	public Geldbetrag(int inputZahl)
 	{
@@ -26,8 +28,13 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 		_eurocent = inputZahl; 
 	}
 		
-	private boolean validate(int inputZahl) {
-		return inputZahl < Integer.MAX_VALUE && inputZahl >= 0;
+	/**
+	 * Prüft ob eine Zahl >= 0 ist.
+	 * @param inputZahl
+	 * @return
+	 */
+	public boolean validate(int inputZahl) {
+		return inputZahl >= 0;
 	}
 
 	
@@ -35,20 +42,21 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 	/**
 	 * Initialisiert ein neues Exemplar eines Geldbetrags mittels String
 	 * @param inputString der übergebene String
-	 * @require validate inputString 
+	 * @require validate(inputString) 
 	 */
 	
 	public Geldbetrag(String inputString)
 	{
 		 
-        assert validate(inputString) : "Vorbedingung verletzt: validate inputString";
+        // assert validate(inputString) : "Vorbedingung verletzt: validate inputString";
 
 		
-		if (inputString.matches("[0-9]{1,7},[0-9]{2}"))
+		if (inputString.matches(_betragMitNachkommastelle))
 	        {
-	            _eurocent = Integer.parseInt(inputString.replace(",", ""));
+	            double dezimal = Double.parseDouble(inputString.replace(",", "."));
+	            _eurocent = (int)(Math.ceil(dezimal*100));
 	        }
-	        else if (inputString.matches("[-]?[0-9]{1,7}"))
+	        else if (inputString.matches(_betrag))
 	        {
 	            _eurocent = Integer.parseInt(inputString)*100;
 	        }
@@ -58,11 +66,15 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 	        }
 	}
 	
-	private boolean validate(String inputString) {
+	/**
+	 * Prüft ob der eingegebene String dem Pattern entspricht
+	 * @param inputString
+	 * @return
+	 */
+	public boolean validate(String inputString) {
 		
-		return inputString.matches("[0-9]{1,7},[0-9]{2}") || inputString.matches("[-]?[0-9]{1,7}");
+		return inputString.matches(_betragMitNachkommastelle) || inputString.matches(_betrag);
 	}
-
 
 
 
@@ -113,8 +125,8 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 	
 	public String toString()
 	{
-		int euro = _eurocent / 100;
-		int cent = Math.abs(_eurocent % 100);
+		int euro = getEuro();
+		int cent = getCent();
 		
 		String centString;
 		
@@ -136,6 +148,9 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 	 * Addieren von zwei Geldbeträgen
 	 * @param sum1
 	 * @param sum2
+	 * 
+	 * @require isAdditionPossible()
+	 * 
 	 * @return das Ergebnis der Addition in Eurocent
 	 */
 	
@@ -146,12 +161,31 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 		return new Geldbetrag(sum1._eurocent + sum2._eurocent);
 	}
 	
+	/**
+     * Addieren von zwei Geldbeträgen
+     * @param other
+     * 
+     * @require isAdditionPossible()
+     * 
+     * @return das Ergebnis der Addition in Eurocent
+     */
+	public Geldbetrag add(Geldbetrag other)
+    {
+        assert this.isAdditionPossible(other) : "Vorbedingung verletzt: Summe wäre größer als Integer.MAX_VALUE";
+        
+        return new Geldbetrag(this._eurocent + other.getEurocent());
+    }
 	
-	private boolean isAdditionPossible(Geldbetrag other) {
+	
+	/**
+	 * Prüft ob Addition möglich ist
+	 * @param other
+	 * @return
+	 */
+	public boolean isAdditionPossible(Geldbetrag other) {
 		
 		return  ((long)this._eurocent + (long)other._eurocent) < Integer.MAX_VALUE;
 	}
-
 
 
 
@@ -174,9 +208,20 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 		{
 			return new Geldbetrag(betrag2 - betrag1);
 		}
-		
+	
 	}
 	
+	public Geldbetrag sub(Geldbetrag other)
+	{
+	    if (this.compareTo(other) < 0)
+	    {
+	        return new Geldbetrag(other.getEurocent() - this._eurocent);
+	    }
+	    else
+	    {
+	        return new Geldbetrag(this.getEurocent() - other.getEurocent());
+	    }
+	}
 
 	/**
 	 * Multipliziert einen Geldbetrag mit einem Faktor 
@@ -187,24 +232,32 @@ public final class Geldbetrag implements Comparable<Geldbetrag>
 	
 	public static Geldbetrag multiply(Geldbetrag geldbetrag, int faktor)
 	{
-		
         assert geldbetrag.isMultiplyPossible(faktor) : "Vorbedingung verletzt: Produkt wäre außerhalb des Integer-Bereichs";
-
 
 		return new Geldbetrag(geldbetrag._eurocent * faktor); 
 	}
 	
-	
-	
-	
-	
-	private boolean isMultiplyPossible(int other) {
+	/**
+     * Multipliziert den Geldbetrag mit einem Faktor 
+     * @param faktor
+     * @require isMultiplyPossible()
+     * @return das Ergebnis der Multiplikation in Eurocent
+     */
+	public Geldbetrag multiply(int faktor)
+    {
+        assert this.isMultiplyPossible(faktor) : "Vorbedingung verletzt: Produkt wäre außerhalb des Integer-Bereichs";
 
+        return new Geldbetrag(_eurocent * faktor); 
+    }
+	
+	
+	/**
+     * Prüft ob Multiplizieren möglich ist.
+     * @retrun 
+     */
+	private boolean isMultiplyPossible(int other) {
 		return ((long)this._eurocent * (long)other) < Integer.MAX_VALUE;
 	}
-
-
-
 
 	@Override
     public boolean equals(Object other)
